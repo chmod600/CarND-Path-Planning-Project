@@ -177,7 +177,7 @@ bool can_move_into_lane(
 
   for(int i = 0; i < sensor_fusion.size(); ++i) {
     vector<double> check_car = sensor_fusion[i];
-    double d = check_car[6];
+    double d = check_car[6]; // The 'd' frenet coordinate
 
     if(d < (2 + 4 * lane + 2) && d > (2 + 4 * lane - 2)) {
       double vx = check_car[3];
