@@ -201,12 +201,11 @@ int main() {
     map_waypoints_dy.push_back(d_y);
   }
 
+  int lane = 1;
+  double ref_vel = 49.5;
 
-
-  h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+  h.onMessage([&lane, &ref_vel, &map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
-    int lane = 1;
-    double ref_vel = 49.5;
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -243,6 +242,7 @@ int main() {
           vector<vector<double>> sensor_fusion = j[1]["sensor_fusion"];
           int prev_size = previous_path_x.size();
 
+          // Create a list of widely spaced waypoints
           vector<double> ptsx;
           vector<double> ptsy;
 
@@ -291,7 +291,7 @@ int main() {
             double shift_y = ptsy[i] - ref_y;
 
             ptsx[i] = (shift_x * cos(0 - ref_yaw) - shift_y * sin(0 - ref_yaw));
-            ptsy[i] = (shift_y * sin(0 - ref_yaw) - shift_y * sin(0 - ref_yaw));
+            ptsy[i] = (shift_y * sin(0 - ref_yaw) + shift_y * sin(0 - ref_yaw));
           }
 
           tk::spline s;
@@ -310,7 +310,7 @@ int main() {
           double x_add_on = 0;
 
           for(int i = 1; i <= (50 - previous_path_x.size()); ++i) {
-            double N = (target_dist / (0.2 * ref_vel/2.24));
+            double N = (target_dist / (0.2 * (ref_vel/2.24)));
             double x_point = x_add_on + (target_x / N);
             double y_point = s(x_point);
 
@@ -332,23 +332,6 @@ int main() {
           json msgJson;
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
-          // TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
-          // double dist_inc = 0.3;
-          // for(int i = 0; i < 50; i++) {
-          //   double next_s = car_s + (dist_inc * i + 1);
-          //   double next_d = 6;
-          //   vector<double> next_xy = getXY(
-          //     next_s,
-          //     next_d,
-          //     map_waypoints_s,
-          //     map_waypoints_x,
-          //     map_waypoints_y
-          //   );
-          //   next_x_vals.push_back(next_xy[0]);
-          //   next_y_vals.push_back(next_xy[1]);
-          // }
-          // msgJson["next_x"] = next_x_vals;
-          // msgJson["next_y"] = next_y_vals;
 
           auto msg = "42[\"control\","+ msgJson.dump()+"]";
 
