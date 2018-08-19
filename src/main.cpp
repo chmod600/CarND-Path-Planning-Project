@@ -164,6 +164,34 @@ vector<double> getXY(double s, double d, const vector<double> &maps_s, const vec
 
 }
 
+vector<int> lanes = { 0, 1, 2 };
+
+bool can_move_into_lane(
+  int lane,
+  vector<vector<double>> sensor_fusion,
+  double car_s,
+  int prev_size) {
+
+  for(int i = 0; i < sensor_fusion.size(); ++i) {
+    vector<double> check_car = sensor_fusion[i];
+    double d = check_car[6];
+
+    if(d < (2 + 4 * lane + 2) && d > (2 + 4 * lane - 2)) {
+      double vx = check_car[3];
+      double vy = check_car[4];
+      double check_car_speed = sqrt(vx * vx + vy * vy);
+      double check_car_s = check_car[5];
+      check_car_s += ((double) prev_size * 0.02 * check_car_speed);
+
+      if((abs(check_car_s - car_s) < 15)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 int main() {
   uWS::Hub h;
 
@@ -258,9 +286,25 @@ int main() {
 
               if((check_car_s > car_s) && ((check_car_s - car_s) < 30)) {
                 too_close = true;
-                if(lane > 0) {
-                  lane = 0;
+
+
+
+                for(int i = 0; i < lanes.size(); ++i) {
+                  if(abs(lane - lanes[i]) == 1 && lane != lanes[i]) {
+                    cout << "Checking Future Lane: " << lanes[i] << endl;
+                    if (can_move_into_lane(lanes[i],
+                        sensor_fusion,
+                        car_s,
+                        prev_size)) {
+                      cout << "CHANGING LANE: " << lanes[i] << endl;
+                      lane = lanes[i];
+                      too_close = false;
+                      break;
+                    }
+                  }
                 }
+
+
               }
             }
           }
@@ -354,11 +398,11 @@ int main() {
             x_point += ref_x;
             y_point += ref_y;
 
-            cout << endl;
-            cout << "i: " << i << endl;
-            cout << "x_point: " << x_point << endl;
-            cout << "ref_y: " << ref_y << endl;
-            cout << "y_point: " << y_point << endl;
+            // cout << endl;
+            // cout << "i: " << i << endl;
+            // cout << "x_point: " << x_point << endl;
+            // cout << "ref_y: " << ref_y << endl;
+            // cout << "y_point: " << y_point << endl;
 
             next_x_vals.push_back(x_point);
             next_y_vals.push_back(y_point);
