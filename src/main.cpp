@@ -202,7 +202,7 @@ int main() {
   }
 
   int lane = 1;
-  double ref_vel = 49.5;
+  double ref_vel = 0;
 
   h.onMessage([&lane, &ref_vel, &map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
@@ -241,6 +241,10 @@ int main() {
           // Sensor Fusion Data, a list of all other cars on the same side of the road.
           vector<vector<double>> sensor_fusion = j[1]["sensor_fusion"];
           int prev_size = previous_path_x.size();
+
+          if(ref_vel < 49.5){
+            ref_vel += .224;
+          }
 
           // Create a list of widely spaced waypoints
           vector<double> ptsx;
@@ -291,7 +295,7 @@ int main() {
             double shift_y = ptsy[i] - ref_y;
 
             ptsx[i] = (shift_x * cos(0 - ref_yaw) - shift_y * sin(0 - ref_yaw));
-            ptsy[i] = (shift_x * sin(0 - ref_yaw) + shift_y * sin(0 - ref_yaw));
+            ptsy[i] = (shift_x * sin(0 - ref_yaw) + shift_y * cos(0 - ref_yaw));
           }
 
           tk::spline s;
@@ -310,7 +314,7 @@ int main() {
           double x_add_on = 0;
 
           for(int i = 1; i <= (50 - previous_path_x.size()); ++i) {
-            double N = (target_dist / (0.2 * (ref_vel/2.24)));
+            double N = (target_dist / (0.02 * (ref_vel / 2.24)));
             double x_point = x_add_on + (target_x / N);
             double y_point = s(x_point);
 
@@ -324,6 +328,12 @@ int main() {
 
             x_point += ref_x;
             y_point += ref_y;
+
+            cout << endl;
+            cout << "i: " << i << endl;
+            cout << "x_point: " << x_point << endl;
+            cout << "ref_y: " << ref_y << endl;
+            cout << "y_point: " << y_point << endl;
 
             next_x_vals.push_back(x_point);
             next_y_vals.push_back(y_point);
