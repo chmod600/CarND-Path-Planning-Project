@@ -1,3 +1,6 @@
+// Akshay Khole
+// References - Walkthrough, Lessons
+// Car was able to drive 4.5 miles without incidents
 #include <fstream>
 #include <math.h>
 #include <uWS/uWS.h>
@@ -182,7 +185,7 @@ bool can_move_into_lane(
       double check_car_speed = sqrt(vx * vx + vy * vy);
       double check_car_s = check_car[5];
       check_car_s += ((double) prev_size * 0.02 * check_car_speed);
-
+      // If any car within 20 steps of future lane, do not change
       if((abs(check_car_s - car_s) < 20)) {
         return false;
       }
@@ -286,10 +289,10 @@ int main() {
 
               if((check_car_s > car_s) && ((check_car_s - car_s) < 30)) {
                 too_close = true;
-
-
-
                 for(int i = 0; i < lanes.size(); ++i) {
+                  // Check for future lanes
+                  // Car should only look at one lanes over.
+                  // Hence the abs(lane - lanes[i]) == 1
                   if(abs(lane - lanes[i]) == 1 && lane != lanes[i]) {
                     cout << "Checking Future Lane: " << lanes[i] << endl;
                     if (can_move_into_lane(lanes[i],
