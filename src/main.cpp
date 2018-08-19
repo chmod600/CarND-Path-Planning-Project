@@ -202,7 +202,7 @@ int main() {
   }
 
   int lane = 1;
-  double ref_vel = 49.5;
+  double ref_vel = 0;
 
   h.onMessage([&lane, &ref_vel, &map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
@@ -257,15 +257,19 @@ int main() {
               check_car_s += ((double) prev_size * 0.02 * check_speed);
 
               if((check_car_s > car_s) && ((check_car_s - car_s) < 30)) {
-                ref_vel = 29.; // this is in mph
+                too_close = true;
+                if(lane > 0) {
+                  lane = 0;
+                }
               }
             }
           }
 
-
-          // if(ref_vel < 49.5){
-          //   ref_vel += .224;
-          // }
+          if(too_close) {
+            ref_vel -= 0.224;
+          } else if(ref_vel < 49.5 || ref_vel < 0){
+            ref_vel += 0.224;
+          }
 
           // Create a list of widely spaced waypoints
           vector<double> ptsx;
