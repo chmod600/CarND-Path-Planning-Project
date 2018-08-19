@@ -183,7 +183,7 @@ bool can_move_into_lane(
       double check_car_s = check_car[5];
       check_car_s += ((double) prev_size * 0.02 * check_car_speed);
 
-      if((abs(check_car_s - car_s) < 15)) {
+      if((abs(check_car_s - car_s) < 20)) {
         return false;
       }
     }
